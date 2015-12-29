@@ -1,0 +1,21 @@
+<head>
+  <title>meteor-component-ioc-plugin</title>
+</head>
+
+<body>
+  <h1>Welcome to Meteor!</h1>
+
+  {{#App}}
+    {{> Hello}}
+  {{/App}}
+</body>
+
+<template name="App">
+  {{> Template.contentBlock}}
+</template>
+
+<template name="Hello">
+  {{#each items}}
+    <p>{{title}}</p>
+  {{/each}}
+</template>
