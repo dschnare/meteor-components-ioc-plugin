@@ -16,6 +16,10 @@
 
 <template name="Hello">
   {{#each items}}
-    <p>{{title}}</p>
+    {{> Item item=this}}
   {{/each}}
+</template>
+
+<template name="Item">
+  <p>{{item.title}}</p>
 </template>

@@ -56,4 +56,19 @@ if (Meteor.isClient) {
       console.log('Hello#initialize', this._items);
     }
   };
+
+  Component.Item = class {
+    constructor(item/*, data (optionally available) */) {
+      this._item = item;
+      // data is a ReactiveVar instance that will get a
+      // reactive data context
+      // this._item = data.get().item
+    }
+
+    helpers() {
+      return {
+        item: () => this._item.get()
+      };
+    }
+  };
 }

@@ -27,8 +27,12 @@ Then replace `test-app.html` with the following markup.
 
     <template name="Hello">
       {{#each items}}
-        <p>{{title}}</p>
+        {{> Item item=this}}
       {{/each}}
+    </template>
+
+    <template name="Item">
+      <p>{{item.title}}</p>
     </template>
 
 Now replace `test-app.js` with the following code.
@@ -100,6 +104,21 @@ Now replace `test-app.js` with the following code.
           console.log('Hello#initialize', this._items);
         }
       };
+
+      Component.Item = class {
+        constructor(item/*, data (optionally available) */) {
+          this._item = item;
+          // data is a ReactiveVar instance that will get a
+          // reactive data context
+          // this._item = data.get().item
+        }
+
+        helpers() {
+          return {
+            item: () => this._item.get()
+          };
+        }
+      };
     }
 
 
@@ -163,3 +182,60 @@ provide mocked services without having to modify the components.
         {{> Widget}}
       {{/App}}
     </body>
+
+All components will also have their data context available as a dependency
+with the name `data`. This service is a `ReactiveVar` that will update when
+the data context changes.
+
+For convenience each key of the data context is also available as a dependency
+with each key being the name of a service. Each service is a `ReactiveVar` that
+will update when the data context changes.
+
+**Example:**
+
+Template code.
+
+    <template name="App">
+      {{> Template.contentBlock}}
+    </template>
+
+    <template name="Item">
+      <p>{{item.title}}</p>
+    </template>
+
+    <body>
+      {{#App}}
+        {{#each items}}
+          {{> ItemRenderer item=this}}
+        {{/each}}
+      {{/App}
+    </body>
+
+Component code.
+
+    Component.App = class {
+      helpers() {
+        return {
+          items: function () {
+            return [
+              { title: 'one' },
+              { title: 'two' },
+              { title: 'three' }
+            ];
+          }
+        };
+      }
+    }
+
+    // Depends on item being a ReactiveVar instance.
+    Component.ItemRenderer = class {
+      constructor(item) {
+        this._item = item;
+      }
+
+      helpers() {
+        return {
+          item: () => this._item.get();
+        };
+      }
+    }
