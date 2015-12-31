@@ -1,3 +1,10 @@
+# 0.1.1
+
+**Dec. 30, 2015**
+
+- Correct example in reference documentation.
+
+
 # 0.1.0
 
 **Dec. 30, 2015**

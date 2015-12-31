@@ -199,7 +199,7 @@ Template code.
       {{> Template.contentBlock}}
     </template>
 
-    <template name="Item">
+    <template name="ItemRenderer">
       <p>{{item.title}}</p>
     </template>
 
