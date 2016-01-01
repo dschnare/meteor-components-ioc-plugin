@@ -73,15 +73,17 @@ Now replace `test-app.js` with the following code.
       Component.App = {
         services() {
           return {
-            items: [
-              { title: randomString() },
-              { title: randomString() },
-              { title: randomString() },
-              { title: randomString() },
-              { title: randomString() },
-              { title: randomString() },
-              { title: randomString() }
-            ]
+            items: function () {
+              return [
+                { title: randomString() },
+                { title: randomString() },
+                { title: randomString() },
+                { title: randomString() },
+                { title: randomString() },
+                { title: randomString() },
+                { title: randomString() }
+              ]
+            }
           };
         }
       };
@@ -106,16 +108,9 @@ Now replace `test-app.js` with the following code.
       };
 
       Component.Item = class {
-        constructor(item/*, data (optionally available) */) {
-          this._item = item;
-          // data is a ReactiveVar instance that will get a
-          // reactive data context
-          // this._item = data.get().item
-        }
-
         helpers() {
           return {
-            item: () => this._item.get()
+            item: () => this.data.get('item')
           };
         }
       };
@@ -159,6 +154,35 @@ provide mocked services without having to modify the components.
         // somethingElse(serviceA, serviceB) {
         //   return {};
         // }
+
+        // If in production your code is obfuscated then you'll need to
+        // specify what dependencies to inject.
+        // somethingElse: [
+        //   'serviceA, 'serviceB',
+        //   function (serviceA, serviceB) {
+        //     return {};
+        //   }
+        // ]
+
+        // Or if you wanted to manually specifiy the dependencies to be injected
+        // you can do so j\ust by setting the inject property on the function.
+        // somethingElse: (function () {
+        //  function somethingElse(serviceA, serviceB) {
+        //    return {};
+        //  }
+        //  somethingElse.inject = ['serviceA', 'serviceB'];
+        //  return somethingElse;
+        // }())
+
+        // Classes can specifiy the dependencies they want to inject by setting
+        // a static method that returns the array of dependency names.
+        // somethingElseClass: class {
+        //   static inject() {
+        //     return ['serviceA', 'serviceB'];
+        //   }
+        //
+        //   constructor(serviceA, serviceB) {
+        // }
       },
 
       doStuff() { /*...*/ }
@@ -183,13 +207,18 @@ provide mocked services without having to modify the components.
       {{/App}}
     </body>
 
-All components will also have their data context available as a dependency
-with the name `data`. This service is a `ReactiveVar` that will update when
-the data context changes.
+All components will also have their `data()` methods overridden to accept a
+key path argument. If a key path is specified then the request for that key
+path is a reactive call and the current `Tracker` computation will be
+invalidated when the value changes. If no key path is specified then the method
+returns the non-reactive data context as usual.
 
-For convenience each key of the data context is also available as a dependency
-with each key being the name of a service. Each service is a `ReactiveVar` that
-will update when the data context changes.
+As a convenience all components also have a `data(keyPath)` helper added that
+can be used like the following: `{{data "some.key.path"}}`. The request for a
+key path is reactive just like calling `data(keyPath)`.
+
+Using these mehtods allows you to create `autoruns` that invalidate when a
+particular key or path changes instead of the entire data context.
 
 **Example:**
 
@@ -229,13 +258,9 @@ Component code.
 
     // Depends on item being a ReactiveVar instance.
     Component.ItemRenderer = class {
-      constructor(item) {
-        this._item = item;
-      }
-
       helpers() {
         return {
-          item: () => this._item.get();
+          item: () => this.data('item');
         };
       }
     }

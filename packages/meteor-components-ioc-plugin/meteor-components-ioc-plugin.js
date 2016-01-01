@@ -1,4 +1,4 @@
-/*global ComponentRootIoc, Package, ReactiveVar*/
+/*global ComponentRootIoc, Package, ReactiveObj, EJSON*/
 
 function install(Component, ComponentUtil, IocContainer) {
   ComponentRootIoc = new IocContainer();
@@ -10,9 +10,6 @@ function install(Component, ComponentUtil, IocContainer) {
     if (!templateInstance.view.ioc) {
       let ioc = new IocContainer(nearestIoc);
       templateInstance.view.ioc = ioc;
-
-      installDataContextKeys(ioc, templateInstance);
-      installDataContext(ioc, templateInstance);
 
       ioc.install(
         componentName,
@@ -32,7 +29,11 @@ function install(Component, ComponentUtil, IocContainer) {
       );
     }
 
-    return templateInstance.view.ioc.resolve(componentName);
+    let component = templateInstance.view.ioc.resolve(componentName);
+
+    installDataContext(component, templateInstance);
+
+    return component;
   };
 
   Component.onComponentInitialized(function (component, templateInstance) {
@@ -41,7 +42,17 @@ function install(Component, ComponentUtil, IocContainer) {
       let services = component.services();
 
       for (let key in services) {
-        ioc.install(key, services[key]);
+        let service = services[key];
+        if (Array.isArray(service) &&
+          typeof service[service.length - 1] === 'function') {
+          // service = [dep1, dep2, dep3, fn]
+          ioc.install(key, service.pop(), { inject: service });
+        } else {
+          ioc.install(key, service, {
+            inject: typeof service.inject === 'function' ?
+              service.inject() : service.inject
+          });
+        }
       }
     }
   });
@@ -62,52 +73,38 @@ function getNearestIocContainer(view, defaultIoc) {
   return view ? (view.ioc || defaultIoc) : defaultIoc;
 }
 
-function installDataContext(ioc, templateInstance) {
-  let dataVar = null;
+function installDataContext(component, templateInstance) {
+  let dataContext = null;
+
   templateInstance.autorun(function (c) {
     let data = Template.currentData();
 
     if (c.firstRun) {
-      dataVar = new ReactiveVar(data);
-      ioc.install('data', () => dataVar);
-    } else {
-      dataVar.curValue = data;
-      dataVar.dep.changed();
-    }
-  });
-}
-
-function installDataContextKeys(ioc, templateInstance) {
-  let vars = {};
-  templateInstance.autorun(function (c) {
-    // depend on a reactive data context.
-    let data = Template.currentData();
-
-    if (c.firstRun) {
-      if (data && typeof data === 'object' && !Array.isArray(data)) {
-        for (let key in data) {
-          vars[key] = new ReactiveVar(data[key]);
-          ioc.install(key, () => vars[key]);
-        }
-      }
-
-      c.onStop(function () {
-        for (let key in vars) {
-          vars[key] = null;
+      dataContext = new ReactiveObj(data, {
+        transform(value) {
+          return EJSON.clone(value);
         }
       });
     } else {
-      // We have to forcefully mark each data context key as being
-      // changed because the new value could be the same object only
-      // with updates. We set the value manually so that we don't
-      // inadvertanly cause more than one 'change' event to occur
-      // for each data context key.
-      if (data && typeof data === 'object' && !Array.isArray(data)) {
-        for (let key in vars) {
-          vars[key].curValue = data[key];
-          vars[key].dep.changed();
-        }
-      }
+      dataContext.set([], data);
+    }
+  });
+
+  // Override the component's data() method to optionally accept
+  // a path to retrieve from the data context. The path will be
+  // reactive since it's being managed by a ReactiveObj instance.
+  // If no path is specified then data() returns the non-reactive
+  // data context as usual.
+  component.data = function (path) {
+    if (arguments.length === 0) {
+      return templateInstance.data;
+    }
+    return dataContext ? dataContext.get(path) : null;
+  };
+
+  templateInstance.view.template.helpers({
+    data(path) {
+      return  dataContext ? dataContext.get(path) : null;
     }
   });
 }

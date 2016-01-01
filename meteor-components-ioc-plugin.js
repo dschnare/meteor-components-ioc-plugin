@@ -28,15 +28,17 @@ if (Meteor.isClient) {
   Component.App = {
     services() {
       return {
-        items: [
-          { title: randomString() },
-          { title: randomString() },
-          { title: randomString() },
-          { title: randomString() },
-          { title: randomString() },
-          { title: randomString() },
-          { title: randomString() }
-        ]
+        items: function () {
+          return [
+            { title: randomString() },
+            { title: randomString() },
+            { title: randomString() },
+            { title: randomString() },
+            { title: randomString() },
+            { title: randomString() },
+            { title: randomString() }
+          ]
+        }
       };
     }
   };
@@ -58,16 +60,9 @@ if (Meteor.isClient) {
   };
 
   Component.Item = class {
-    constructor(item/*, data (optionally available) */) {
-      this._item = item;
-      // data is a ReactiveVar instance that will get a
-      // reactive data context
-      // this._item = data.get().item
-    }
-
     helpers() {
       return {
-        item: () => this._item.get()
+        item: () => this.data('item')
       };
     }
   };
