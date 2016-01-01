@@ -14,7 +14,7 @@ Package.describe({
 Package.onUse(function(api) {
   api.versionsFrom('1.2.1');
   api.use('ecmascript', 'client');
-  api.use('xamfoo:reactive-obj', 'client');
+  api.use('xamfoo:reactive-obj@0.5.0', 'client');
   api.use('ejson', 'client');
   api.use([
     'dschnare:meteor-components@0.5.0',
