@@ -1,3 +1,16 @@
+# 0.1.2
+
+**Jan. 1, 2016**
+
+- Add support for static method or property `inject` on components that
+  returns an array of dependency names. This is so that if your code is
+  obfuscated then dependencies will continue to be resolved correctly.
+
+- Clean up data context service installation so that all logic takes place
+  in a autorun.
+
+
+
 # 0.1.1
 
 **Dec. 30, 2015**
