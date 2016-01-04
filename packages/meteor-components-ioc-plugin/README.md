@@ -110,7 +110,7 @@ Now replace `test-app.js` with the following code.
       Component.Item = class {
         helpers() {
           return {
-            item: () => this.data.get('item')
+            item: () => this.data().item
           };
         }
       };
@@ -206,61 +206,3 @@ provide mocked services without having to modify the components.
         {{> Widget}}
       {{/App}}
     </body>
-
-All components will also have their `data()` methods overridden to accept a
-key path argument. If a key path is specified then the request for that key
-path is a reactive call and the current `Tracker` computation will be
-invalidated when the value changes. If no key path is specified then the method
-returns the non-reactive data context as usual.
-
-As a convenience all components also have a `data(keyPath)` helper added that
-can be used like the following: `{{data "some.key.path"}}`. The request for a
-key path is reactive just like calling `data(keyPath)`.
-
-Using these mehtods allows you to create `autoruns` that invalidate when a
-particular key or path changes instead of the entire data context.
-
-**Example:**
-
-Template code.
-
-    <template name="App">
-      {{> Template.contentBlock}}
-    </template>
-
-    <template name="ItemRenderer">
-      <p>{{item.title}}</p>
-    </template>
-
-    <body>
-      {{#App}}
-        {{#each items}}
-          {{> ItemRenderer item=this}}
-        {{/each}}
-      {{/App}
-    </body>
-
-Component code.
-
-    Component.App = class {
-      helpers() {
-        return {
-          items: function () {
-            return [
-              { title: 'one' },
-              { title: 'two' },
-              { title: 'three' }
-            ];
-          }
-        };
-      }
-    }
-
-    // Depends on item being a ReactiveVar instance.
-    Component.ItemRenderer = class {
-      helpers() {
-        return {
-          item: () => this.data('item');
-        };
-      }
-    }

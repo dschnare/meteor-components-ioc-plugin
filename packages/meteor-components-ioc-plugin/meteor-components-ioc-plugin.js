@@ -29,11 +29,7 @@ function install(Component, ComponentUtil, IocContainer) {
       );
     }
 
-    let component = templateInstance.view.ioc.resolve(componentName);
-
-    installDataContext(component, templateInstance);
-
-    return component;
+    return templateInstance.view.ioc.resolve(componentName);
   };
 
   Component.onComponentInitialized(function (component, templateInstance) {
@@ -71,42 +67,6 @@ function getNearestIocContainer(view, defaultIoc) {
   } while (view && !view.ioc);
 
   return view ? (view.ioc || defaultIoc) : defaultIoc;
-}
-
-function installDataContext(component, templateInstance) {
-  let dataContext = null;
-
-  templateInstance.autorun(function (c) {
-    let data = Template.currentData();
-
-    if (c.firstRun) {
-      dataContext = new ReactiveObj(data, {
-        transform(value) {
-          return EJSON.clone(value);
-        }
-      });
-    } else {
-      dataContext.set([], data);
-    }
-  });
-
-  // Override the component's data() method to optionally accept
-  // a path to retrieve from the data context. The path will be
-  // reactive since it's being managed by a ReactiveObj instance.
-  // If no path is specified then data() returns the non-reactive
-  // data context as usual.
-  component.data = function (path) {
-    if (arguments.length === 0) {
-      return templateInstance.data;
-    }
-    return dataContext ? dataContext.get(path) : null;
-  };
-
-  templateInstance.view.template.helpers({
-    data(path) {
-      return  dataContext ? dataContext.get(path) : null;
-    }
-  });
 }
 
 // If the weak dependencies exist then we install the plugin.
