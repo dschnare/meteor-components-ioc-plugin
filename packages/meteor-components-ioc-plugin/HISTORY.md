@@ -1,6 +1,6 @@
 # 0.2.1
 
-**Jan. 1, 2016**
+**Jan. 4, 2016**
 
 - Drop the feature of accepting a key path in the `data()` method of the
   components. This feature has been migrated to meteor-components.
