@@ -1,3 +1,18 @@
+# 0.2.2
+
+**Jan. 4, 2016**
+
+- Add support for components defined with a static `create()` function.
+  Dependencies will be injected into the create function just as if it
+  were a normal function or constructor.
+
+- Add support for array-style component definitions like what is accepted
+  by `services()` method return value.
+
+- Add support for static `create()` function from a service returned from a
+  component's `services()` method.
+
+
 # 0.2.1
 
 **Jan. 4, 2016**

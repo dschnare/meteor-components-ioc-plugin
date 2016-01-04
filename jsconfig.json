@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ES6"
   },
-  "exclude": [
-    "./meteor"
+  "files": [
+    "packages/meteor-components-ioc-plugin/meteor-components-ioc-plugin.js"
   ]
 }

@@ -11,22 +11,44 @@ function install(Component, ComponentUtil, IocContainer) {
       let ioc = new IocContainer(nearestIoc);
       templateInstance.view.ioc = ioc;
 
-      ioc.install(
-        componentName,
-        Ctor,
-        {
-          newable: typeof Ctor === 'function',
-          inject: typeof Ctor.inject === 'function' ?
-            Ctor.inject() : Ctor.inject,
-          concerns: {
-            initializing(component) {
-              component.name = componentName;
-              component.templateInstance = templateInstance;
-              Component.trigger('initializing', component, templateInstance);
+      // Can accept array-style definition:
+      // ['dep1', 'dep2', 'dep3', fn]
+      if (Array.isArray(Ctor)) {
+        let fn = Ctor.pop();
+        let inject = Ctor;
+
+        ioc.install(
+          componentName,
+          fn,
+          {
+            inject: inject,
+            concerns: {
+              initializing(component) {
+                component.name = componentName;
+                component.templateInstance = templateInstance;
+                Component.trigger('initializing', component, templateInstance);
+              }
             }
           }
-        }
-      );
+        );
+      } else {
+        ioc.install(
+          componentName,
+          typeof Ctor.create === 'function' ? Ctor.create : Ctor,
+          {
+            newable: typeof Ctor === 'function',
+            inject: typeof Ctor.inject === 'function' ?
+              Ctor.inject() : Ctor.inject,
+            concerns: {
+              initializing(component) {
+                component.name = componentName;
+                component.templateInstance = templateInstance;
+                Component.trigger('initializing', component, templateInstance);
+              }
+            }
+          }
+        );
+      }
     }
 
     return templateInstance.view.ioc.resolve(componentName);
@@ -39,12 +61,13 @@ function install(Component, ComponentUtil, IocContainer) {
 
       for (let key in services) {
         let service = services[key];
+        // Array-style definition: [dep1, dep2, dep3, fn]
         if (Array.isArray(service) &&
           typeof service[service.length - 1] === 'function') {
-          // service = [dep1, dep2, dep3, fn]
           ioc.install(key, service.pop(), { inject: service });
         } else {
-          ioc.install(key, service, {
+          ioc.install(key, typeof service.create === 'function' ?
+            service.create : service, {
             inject: typeof service.inject === 'function' ?
               service.inject() : service.inject
           });

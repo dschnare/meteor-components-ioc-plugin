@@ -62,7 +62,7 @@ if (Meteor.isClient) {
   Component.Item = class {
     helpers() {
       return {
-        item: () => this.data().item
+        item: () => this.data('item')
       };
     }
   };

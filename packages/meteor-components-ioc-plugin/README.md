@@ -110,7 +110,7 @@ Now replace `test-app.js` with the following code.
       Component.Item = class {
         helpers() {
           return {
-            item: () => this.data().item
+            item: () => this.data('item')
           };
         }
       };
