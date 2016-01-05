@@ -1,3 +1,16 @@
+# 0.3.0
+
+**Jan. 4, 2016**
+
+- Drop support for array style component and service definitions.
+  As a workaround use the factory style definition with a static
+  `create()` method. To specify dependencies to inject define a
+  static `inject()` method or `inject` array property. This change
+  unifies component and service definition to conincide with the
+  typyical component definition patterns supported by meteor-components.
+
+
+
 # 0.2.2
 
 **Jan. 4, 2016**
