@@ -73,7 +73,9 @@ Now replace `test-app.js` with the following code.
       Component.App = {
         services() {
           return {
-            items: function () {
+            // It's best practice to use JSON keys just in case our code
+            // will be obfuscated by a minifier.
+            'items': function () {
               return [
                 { title: randomString() },
                 { title: randomString() },
@@ -92,6 +94,12 @@ Now replace `test-app.js` with the following code.
       // The items will be injected automatically when
       // the template is wrapped in an App.
       Component.Hello = class {
+        // It is only neccessary to manually decalare what we want to inject
+        // if our code will be obfuscated by a minifier.
+        static inject() {
+          return ['items'];
+        }
+
         constructor(items) {
           this._items = items;
         }
@@ -146,58 +154,31 @@ provide mocked services without having to modify the components.
         // these are services that provide a value so binding will
         // clobber over the formal parameter list the dependency
         // system uses for injection.
-        posts: () => PostsCollection,
-
-        // This is how we could define a service with dependencies. These
-        // dependencies need to be defined higher up the hierarchy or on
-        // the ComponentRootIoc.
-        // somethingElse(serviceA, serviceB) {
-        //   return {};
-        // }
-
-        // If in production your code is obfuscated then you'll need to
-        // specify what dependencies to inject.
-        // somethingElse: [
-        //   'serviceA, 'serviceB',
-        //   function (serviceA, serviceB) {
-        //     return {};
-        //   }
-        // ]
-
-        // Or if you wanted to manually specifiy the dependencies to be injected
-        // you can do so j\ust by setting the inject property on the function.
-        // somethingElse: (function () {
-        //  function somethingElse(serviceA, serviceB) {
-        //    return {};
-        //  }
-        //  somethingElse.inject = ['serviceA', 'serviceB'];
-        //  return somethingElse;
-        // }())
-
-        // Classes can specifiy the dependencies they want to inject by setting
-        // a static method that returns the array of dependency names.
-        // somethingElseClass: class {
-        //   static inject() {
-        //     return ['serviceA', 'serviceB'];
-        //   }
         //
-        //   constructor(serviceA, serviceB) {
-        // }
+        // NOTE: Be sure to use JSON keys if your code will be obfuscated.
+        'posts': () => PostsCollection
       },
 
       doStuff() { /*...*/ }
     }
 
     Component.Widget = {
-      // Pull down the App instance
-      App: null,
-      // Pull down the posts collection
-      posts: null,
+      // Manually specify what we want injected in the event
+      // our code is obfuscated by a minifier.
+      inject() {
+        return ['App', 'posts'];
+      },
 
-      initialize() {
-        // We can now do stuff with the App
-        this.App.doStuff();
-        // this.App is actually the same as this.parent in this case
+      create(App, posts) {
+        return {
+          App: App,
+          posts: posts,
+          initialize() {
+            // We can now do stuff with the App
+            this.App.doStuff();
+            // this.App is actually the same as this.parent in this case
+          }
+        };
       }
     }
 
@@ -206,3 +187,78 @@ provide mocked services without having to modify the components.
         {{> Widget}}
       {{/App}}
     </body>
+
+**Service Definition**
+
+Services can be defined in the same styles as supported by components, namely
+constructor style, object style and factory style.
+
+    services() {
+      return {
+        // Object style (no dependency injection)
+        'serviceB': {
+          name: 'myService',
+          doWork() {
+            /* do stuff */
+          }
+          /* other service instance methods */
+        },
+
+        // Class/constructor style
+        'serviceA': class {
+          static inject() { return ['dep1']; }
+          constructor(theDep1) {
+            /* do stuff with theDep1 */
+          }
+        },
+
+        // Factory style
+        'serviceC': {
+          inject() { return ['dep1']; },
+          create(theDep1) {
+            /* do stuff with theDep1 */
+            return {
+              /* the service instance */
+            };
+          }
+        }
+      }
+    }
+
+**Mixins Definition**
+
+Mixins will be extended to support dependency injection just like services.
+
+**Example:**
+
+    mixins() {
+      [
+        // Object style (no dependency injection)
+        {
+          name: 'myMixin',
+          doWork() {
+            /* do stuff */
+          }
+          /* other service instance methods */
+        },
+
+        // Class/constructor style
+        class {
+          static inject() { return ['dep1']; }
+          constructor(theDep1) {
+            /* do stuff with theDep1 */
+          }
+        },
+
+        // Factory style
+        {
+          inject() { return ['dep1']; },
+          create(theDep1) {
+            /* do stuff with theDep1 */
+            return {
+              /* the service instance */
+            };
+          }
+        }
+      ];
+    }

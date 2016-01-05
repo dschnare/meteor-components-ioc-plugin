@@ -1,3 +1,13 @@
+# 0.3.1
+
+**Jan. 4, 2016**
+
+- Add support for dependency injection into mixins. Any constructor style
+  or factory style mixin definition will have its dependencies injected
+  automatically. Each component can optionally define a static `inject()`
+  method or `inject` array property to specify dependency names.
+
+
 # 0.3.0
 
 **Jan. 4, 2016**
