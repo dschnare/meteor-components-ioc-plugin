@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
-    "target": "ES6"
+    "target": "ES6",
+    "experimentalDecorators": true
   },
   "files": [
     "packages/meteor-components-ioc-plugin/meteor-components-ioc-plugin.js"
