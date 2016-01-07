@@ -170,15 +170,14 @@ provide mocked services without having to modify the components.
       }
 
       construct(App, posts) {
-        return {
-          App: App,
-          posts: posts,
-          initialize() {
-            // We can now do stuff with the App
-            this.App.doStuff();
-            // this.App is actually the same as this.parent in this case
-          }
-        };
+        this.App: App;
+        this.posts = posts;
+      }
+
+      initialize() {
+        // We can now do stuff with the App
+        this.App.doStuff();
+        // this.App is actually the same as this.parent in this case
       }
     }
 
@@ -228,7 +227,7 @@ Services can be defined using object and factory style definitions.
           factory.destroyable = true;
 
           return factory;
-        }),
+        })
       }
     }
 

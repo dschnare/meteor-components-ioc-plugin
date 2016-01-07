@@ -28,7 +28,6 @@ if (Meteor.isClient) {
   Component.App = {
     services() {
       return {
-        'router': { initialize() { throw new Error('Uh oh'); } },
         'items': function () {
           return [
             { title: randomString() },
@@ -45,9 +44,9 @@ if (Meteor.isClient) {
   };
 
   Component.Hello = class {
-    static inject() { return ['items', 'router']; }
+    static inject() { return ['items']; }
 
-    constructor(items, router) {
+    constructor(items) {
       this._items = items;
     }
 
