@@ -4,7 +4,7 @@ A plugin for [dschnare:meteor-components](https://atmospherejs.com/dschnare/mete
 take care of integrating [dschnare:ioc-container](https://atmospherejs.com/dschnare/ioc-container) for automatic dependency injection.
 
 
-# Quickstart
+# Quick Start
 
 Create a new project.
 
@@ -155,21 +155,21 @@ provide mocked services without having to modify the components.
         // clobber over the formal parameter list the dependency
         // system uses for injection.
         //
-        // NOTE: Be sure to use JSON keys if your code will be obfuscated.
+        // Be sure to use JSON keys if your code will be obfuscated.
         'posts': () => PostsCollection
       },
 
       doStuff() { /*...*/ }
     }
 
-    Component.Widget = {
+    Component.Widget = class {
       // Manually specify what we want injected in the event
       // our code is obfuscated by a minifier.
-      inject() {
+      static inject() {
         return ['App', 'posts'];
-      },
+      }
 
-      create(App, posts) {
+      construct(App, posts) {
         return {
           App: App,
           posts: posts,
@@ -190,12 +190,12 @@ provide mocked services without having to modify the components.
 
 **Service Definition**
 
-Services can be defined in the same styles as supported by components, namely
-constructor style, object style and factory style.
+Services can be defined using object and factory style definitions.
 
     services() {
       return {
         // Object style (no dependency injection)
+        // Will be cloned via Object.create()
         'serviceB': {
           name: 'myService',
           doWork() {
@@ -204,36 +204,44 @@ constructor style, object style and factory style.
           /* other service instance methods */
         },
 
-        // Class/constructor style
-        'serviceA': class {
-          static inject() { return ['dep1']; }
-          constructor(theDep1) {
-            /* do stuff with theDep1 */
-          }
+        // Factory style
+        'serviceC': function (theDep1) {
+          return {
+            /* service instance properties */
+          };
         },
 
-        // Factory style
-        'serviceC': {
-          inject() { return ['dep1']; },
-          create(theDep1) {
-            /* do stuff with theDep1 */
+        // Factory style (with configuration)
+        'serviceC': (function () {
+          function factory(theDep1) {
             return {
-              /* the service instance */
+              /* service instance properties */
+              initialize() {},
+              destroy() {}
             };
           }
-        }
+
+          factory.inject = ['dep1'];
+          /* optionally declare this service as being
+            initalizable and destroyable */
+          factory.initializable = true;
+          factory.destroyable = true;
+
+          return factory;
+        }),
       }
     }
 
 **Mixins Definition**
 
-Mixins will be extended to support dependency injection just like services.
+Mixins are extended to support dependency injection just like services.
 
 **Example:**
 
     mixins() {
       [
         // Object style (no dependency injection)
+        // Will be cloned via Object.create()
         {
           name: 'myMixin',
           doWork() {
@@ -242,23 +250,32 @@ Mixins will be extended to support dependency injection just like services.
           /* other service instance methods */
         },
 
-        // Class/constructor style
-        class {
-          static inject() { return ['dep1']; }
-          constructor(theDep1) {
-            /* do stuff with theDep1 */
-          }
+        // Factory style
+        function (theDep1) {
+          /* do stuff with theDep1 */
+          return {
+            /* the service instance */
+          };
         },
 
-        // Factory style
-        {
-          inject() { return ['dep1']; },
-          create(theDep1) {
+        // Factory style (with configuration)
+        (function () {
+          function factory(theDep1) {
             /* do stuff with theDep1 */
             return {
               /* the service instance */
+              initialize() {},
+              destroy() {}
             };
           }
-        }
+
+          factory.inject = ['dep1'];
+          /* optionally declare this mixin as being
+            initalizable and destroyable */
+          factory.initializable = true;
+          factory.destroyable = true;
+
+          return factory;
+        }())
       ];
     }

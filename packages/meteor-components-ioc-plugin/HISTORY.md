@@ -1,3 +1,125 @@
+# 0.4.0
+
+**Jan. 7, 2016**
+
+The plugin was brought up to date with the latest changes to meteor-components
+and ioc-container.
+
+BREAKING CHANGE: Component services and mixins don't support `{create(){}}`
+factory style definitions or class/constructor style definitions.
+
+Before
+
+    Component.MyComponent = class {
+      services() {
+        return {
+          'serviceA': {
+            inject: ['a'],
+            create(a) {
+              return {};
+            }
+          },
+
+          'serviceC': class {
+            static inject() { return ['a'] }
+
+            constructor(a) {}
+          },
+
+          'serviceD': SomeClass
+        }
+      }
+
+      mixins() {
+        return [
+          {
+            inject: ['a'],
+            create(a) {
+              return {};
+            }
+          },
+
+          class {
+            static inject() { return ['a'] }
+
+            constructor(a) {}
+          },
+
+          SomeMixinClass
+        ]
+      }
+    }
+
+After
+
+    Component.MyComponent = class {
+      services() {
+        return {
+          'serviceA': (function () {
+            function factory(a) {
+              return {};
+            }
+
+            factory.inject = ['a'];
+
+            return factory;
+          }()),
+
+          'serviceC': (function () {
+            class C {
+              constructor(a) {}
+            }
+
+            function factory(a) {
+              return new C(a);
+            }
+
+            factory.inject = ['a'];
+
+            return factory;
+          }()),
+
+          'serviceD': function () {
+            return new SomeClass();
+          }
+        }
+      }
+
+      mixins() {
+        return [
+          {
+          'serviceA': (function () {
+            function factory(a) {
+              return {};
+            }
+
+            factory.inject = ['a'];
+
+            return factory;
+          }()),
+
+          (function () {
+            class C {
+              constructor(a) {}
+            }
+
+            function factory(a) {
+              return new C(a);
+            }
+
+            factory.inject = ['a'];
+
+            return factory;
+          }()),
+
+          function () {
+            return new SomeMixinClass();
+          }
+        ]
+      }
+    }
+
+
 # 0.3.1
 
 **Jan. 4, 2016**

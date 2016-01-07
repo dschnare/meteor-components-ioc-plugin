@@ -2,23 +2,22 @@
 function install(Component, ComponentUtil, IocContainer) {
   ComponentRootIoc = new IocContainer();
 
-  Component.hookCreateComponent = (componentName, Ctor, templateInstance) => {
+  Component.hookCreateComponent = (componentName, factory, templateInstance) => {
     let nearestIoc =
       getNearestIocContainer(templateInstance.view, ComponentRootIoc);
 
     if (!templateInstance.view.ioc) {
       let ioc = new IocContainer(nearestIoc);
       templateInstance.view.ioc = ioc;
-      let newable = typeof Ctor === 'function';
-      let factorized = !newable && typeof Ctor.create === 'function';
+      let newable = typeof factory.$definition === 'function';
 
-      ioc.install(
+      (newable ? ioc.service : ioc.factory).call(ioc,
         componentName,
-        factorized ? Ctor.create : Ctor,
+        newable ? factory.$definition : factory,
         {
-          newable: newable,
-          inject: typeof Ctor.inject === 'function' ?
-            Ctor.inject() : Ctor.inject,
+          transient: false,
+          initializable: true,
+          destroyable: true,
           concerns: {
             initializing(component) {
               component.name = componentName;
@@ -34,20 +33,18 @@ function install(Component, ComponentUtil, IocContainer) {
     return templateInstance.view.ioc.resolve(componentName);
   };
 
-  Component.onComponentInitialized(function (component, templateInstance) {
+  Component.on('initialized', function (component, templateInstance) {
     if (typeof component.services === 'function') {
       let ioc = templateInstance.view.ioc;
       let services = component.services();
 
       for (let key in services) {
         let service = services[key];
-        let newable = typeof service === 'function';
-        let factorized = !newable && typeof service.create === 'function';
-
-        ioc.install(key, factorized ? service.create : service, {
-          inject: typeof service.inject === 'function' ?
-            service.inject() : service.inject
-        });
+        if (typeof service === 'function') {
+          ioc.factory(key, service, { transient: false });
+        } else {
+          ioc.factory(key, () => Object.create(service), { transient: false });
+        }
       }
     }
   });
@@ -80,43 +77,38 @@ function overrideMixins(component, ioc) {
       if (mixinsInstalled) return mixins;
       mixinsInstalled = true;
 
-      return mixins.map(function (Mixin, index) {
-        let newable = typeof Mixin === 'function';
-        let factorized = !newable && typeof Mixin.create === 'function';
-
-        ioc.install(
-          `mixin_${index}`,
-          factorized ? Mixin.create : Mixin,
-          {
-            newable: newable,
-            inject: typeof Mixin.inject === 'function' ?
-              Mixin.inject() : Mixin.inject,
-            concerns: {
-              initializing(mixin) {
-                // Ensure that the destroy method only gets called once.
-                // This has to be done because the mixin plugin that is
-                // defined in meteor-components will call mixin.destroy()
-                // just before the component is destroyed and the IOC
-                // container will also call destroy when the IOC container
-                // is destroyed.
-                let destroy = mixin.destroy;
-                let destroyed = false;
-                if (typeof destroy === 'function') {
-                  mixin.destroy = function () {
-                    if (destroyed) return;
-                    destroyed = true;
-                    destroy.call(this);
-                  };
-                }
+      return mixins.map(function (m, index) {
+        let options = {
+          transient: false,
+          concerns: {
+            initializing(mixin) {
+              // Ensure that the destroy method only gets called once.
+              // This has to be done because the mixin plugin that is
+              // defined in meteor-components will call mixin.destroy()
+              // just before the component is destroyed and the IOC
+              // container will also call destroy when the IOC container
+              // is destroyed.
+              let destroy = mixin.destroy;
+              let destroyed = false;
+              if (typeof destroy === 'function') {
+                mixin.destroy = function () {
+                  if (destroyed) return;
+                  destroyed = true;
+                  destroy.call(this);
+                };
               }
             }
           }
-        );
+        };
 
-        return {
-          create() {
-            return ioc.resolve(`mixin_${index}`);
-          }
+        if (typeof m !== 'function') {
+          ioc.factory(`mixin_${index}`, m, options);
+        } else {
+          ioc.factory(`mixin_${index}`, () => Object.create(m), options);
+        }
+
+        return function () {
+          return ioc.resolve(`mixin_${index}`);
         };
       });
     };

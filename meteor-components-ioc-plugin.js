@@ -28,6 +28,7 @@ if (Meteor.isClient) {
   Component.App = {
     services() {
       return {
+        'router': { initialize() { throw new Error('Uh oh'); } },
         'items': function () {
           return [
             { title: randomString() },
@@ -44,9 +45,9 @@ if (Meteor.isClient) {
   };
 
   Component.Hello = class {
-    static inject() { return ['items']; }
+    static inject() { return ['items', 'router']; }
 
-    constructor(items) {
+    constructor(items, router) {
       this._items = items;
     }
 
@@ -58,6 +59,10 @@ if (Meteor.isClient) {
 
     initialize() {
       console.log('Hello#initialize', this._items);
+    }
+
+    ready() {
+      console.log('Hello#ready', this._items);
     }
   };
 
