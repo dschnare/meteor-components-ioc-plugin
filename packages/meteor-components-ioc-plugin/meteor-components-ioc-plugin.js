@@ -9,11 +9,11 @@ function install(Component, ComponentUtil, IocContainer) {
     if (!templateInstance.view.ioc) {
       let ioc = new IocContainer(nearestIoc);
       templateInstance.view.ioc = ioc;
-      let newable = typeof factory.$definition === 'function';
+      let newable = typeof Component[componentName] === 'function';
 
       (newable ? ioc.service : ioc.factory).call(ioc,
         componentName,
-        newable ? factory.$definition : factory,
+        newable ? Component[componentName] : factory,
         {
           transient: false,
           initializable: true,

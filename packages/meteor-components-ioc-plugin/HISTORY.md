@@ -1,3 +1,13 @@
+# 0.4.1
+
+**Jan. 13, 2016**
+
+chore(meteor-components) Upgrade to latest meteor-components
+
+Upgrade meteor-components and refactor dependency injection to use new
+component APIs.
+
+
 # 0.4.0
 
 **Jan. 7, 2016**
