@@ -1,3 +1,19 @@
+# 0.5.0
+
+**Jan. 22, 2016**
+
+feat(mixins, attached properties) Add attached mixin support
+
+Add support for attached mixins via attached properties. Mixins can now be
+added to a component dynamically by using a mixin attached property where
+the component template is used. In addition, mixins provided as part of the
+component mixins() API can be named and then configured using attached mixin
+syntax.
+
+Update meteor-components and ioc-container version constraints.
+
+
+
 # 0.4.1
 
 **Jan. 13, 2016**

@@ -1,7 +1,7 @@
 /*global Package*/
 Package.describe({
   name: 'dschnare:meteor-components-ioc-plugin',
-  version: '0.4.1',
+  version: '0.5.0',
   // Brief, one-line summary of the package.
   summary: 'A plugin for Meteor Components that integrates IOC Containers.',
   // URL to the Git repository containing the source code for this package.
@@ -14,11 +14,10 @@ Package.describe({
 Package.onUse(function(api) {
   api.versionsFrom('1.2.1');
   api.use('ecmascript', 'client');
-  api.use('xamfoo:reactive-obj@0.5.0', 'client');
   api.use('ejson', 'client');
   api.use([
-    'dschnare:meteor-components@0.11.0',
-    'dschnare:ioc-container@1.0.0'
+    'dschnare:meteor-components@0.12.0',
+    'dschnare:ioc-container@1.2.1'
   ], 'client', { weak: true });
   api.addFiles([
     'meteor-components-ioc-plugin.js'

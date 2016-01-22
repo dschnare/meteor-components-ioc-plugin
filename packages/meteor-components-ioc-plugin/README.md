@@ -269,12 +269,111 @@ Mixins are extended to support dependency injection just like services.
           }
 
           factory.inject = ['dep1'];
-          /* optionally declare this mixin as being
-            initalizable and destroyable */
-          factory.initializable = true;
-          factory.destroyable = true;
-
           return factory;
         }())
       ];
+    }
+
+**Attached Mixins**
+
+Support has been added for mixins to be attached to a component via attached
+properties. This allows mixins to be applied to a component when it's used in
+a template. All attached properties with the `Mixin.` prefix will be enumerated
+and the property name will be used to resolve a mixin service provided by the
+component's IOC container. Before resolving, the propery name is suffixed with
+`'Mixin'`. The value of the propery will be passed to the mixin's `configure()`
+method if one is defined.
+
+**Example:**
+
+    <template name="Hello">
+      Hello World!
+    </template>
+
+    <body>
+      {{> Hello Mixin.Draggable="{'xAxisOnly':true, }" }}
+    </body>
+
+    /* since 'Mixin' will be suffixed to the attached property
+    name we have to register our mixin with a 'Mixin' suffix */
+
+    ComponentRootIoc.factory('DraggableMixin', () => {
+      return {
+        initialize() {
+          /* initialize mixin */
+        },
+
+        /* called if mixin is instantiated as an attached
+        property, also, called AFTER initialize()! */
+        configure(value) {
+          let settings = JSON.parse(value.replace(/'/g, '"'));
+          if (settings.xAxisOnly) {
+            /* change the dragging behaviour */
+          }
+        },
+
+        /* rest of lifecycle methods as usual */
+
+        ready() {
+        },
+
+        destroy() {
+        }
+      }
+    })
+
+    Component.Hello = {}
+
+If the mixin has a `name` property then it will be referred to when looking up
+attached mixins via attached properties. This way you can configure mixins that
+have been defined as part of the component's API via its `mixins()` method.
+
+**Example:**
+
+This is a contrived example, but the gist is that any named mixins that are
+returned from a component's `mixins()` method can be configured in the template
+by using `Mixin.Name` attached mixin properties.
+
+    <template name="Hello">
+      Hello {{subject}}!
+    </template>
+
+    <body>
+      {{> Hello Mixin.Draggable="{'xAxisOnly': true}" Mixin.Subject="Mom" }}
+    </body>
+
+    ComponentRootIoc.factory('DraggableMixin', () => {
+      return {
+        configure(value) {
+          /* configure the mixin */
+        }
+      };
+    })
+
+    Component.Hello = class {
+      constructor() {
+        this.subject = 'World'
+      }
+
+      mixins() {
+        /* this mixin is configurable because it's named */
+        return [
+          {
+            name: 'Subject',
+            configure(value) {
+              if (typeof value === 'string' && value) {
+                this.owner.subject = value
+              }
+            }
+          }
+        ]
+      }
+
+      helpers() {
+        return {
+          subject() {
+            return this.subject
+          }
+        }
+      }
     }
