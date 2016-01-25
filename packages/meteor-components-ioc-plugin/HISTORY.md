@@ -1,3 +1,13 @@
+# 0.5.1
+
+**Jan. 25, 2016**
+
+fix(attached mixins) Fix $registered check
+
+Fix the check for $registered so that when not defined or falsey then the mixin
+would be saved in the list properly.
+
+
 # 0.5.0
 
 **Jan. 22, 2016**

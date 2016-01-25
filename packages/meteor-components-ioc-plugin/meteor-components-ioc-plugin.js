@@ -148,7 +148,7 @@ function initializeAttachedMixins(component, templateInstance, ioc) {
         // instantiated mixins.
         // NOTE: This is an optimization so that we don't have to filter
         // out registered mixins.
-        if (!!mixin.$registered) mixins.push(mixin);
+        if (!mixin.$registered) mixins.push(mixin);
       } else {
         throw new Error('Attached mixin (' + mixinName + ') not found.');
       }
